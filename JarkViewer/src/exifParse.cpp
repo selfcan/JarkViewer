@@ -229,13 +229,18 @@ std::string ExifParse::exifDataToString(wstring_view path, const Exiv2::ExifData
                 if (idx != string::npos) {
                     isPrompt = true;
                     tagValue.replace(idx, 17, getUIString(44));
-                    tagValue = getUIString(43) + tagValue;
+                    tagValue = std::format("{}{}{}", getUIString(46), getUIString(43), tagValue);
                 }
 
                 idx = tagValue.find("\nSteps:");
                 if (idx != string::npos) {
                     isPrompt = true;
                     tagValue.replace(idx, 7, getUIString(45));
+                }
+                
+                if (tagValue.front() == '{' && tagValue.back() == '}') { // ComfyUI JSON format
+                    isPrompt = true;
+                    tagValue = getUIString(52) + tagValue;
                 }
             }
 
@@ -330,6 +335,9 @@ std::string ExifParse::AI_Prompt(wstring_view path, const uint8_t* buf) {
             prompt.replace(idx, 7, getUIString(45));
         }
 
+        if (prompt.front() == '{' && prompt.back() == '}') { // ComfyUI JSON format
+            return getUIString(52) + prompt;
+        }
         return getUIString(46) + prompt;
     }
     else if (!strncmp((const char*)buf + 0x25, "iTXtparameters", 14)) {
@@ -360,6 +368,9 @@ std::string ExifParse::AI_Prompt(wstring_view path, const uint8_t* buf) {
             prompt.replace(idx, 7, getUIString(45));
         }
 
+        if (prompt.front() == '{' && prompt.back() == '}') { // ComfyUI JSON format
+            return getUIString(52) + prompt;
+        }
         return getUIString(46) + prompt;
     }
     else if (!strncmp((const char*)buf + 0x25, "tEXtprompt", 10)) {
@@ -373,6 +384,9 @@ std::string ExifParse::AI_Prompt(wstring_view path, const uint8_t* buf) {
 
         prompt = jarkUtils::wstringToUtf8(jarkUtils::latin1ToWstring(prompt));
 
+        if (prompt.front() == '{' && prompt.back() == '}') { // ComfyUI JSON format
+            return getUIString(52) + prompt;
+        }
         return getUIString(46) + prompt;
     }
 
