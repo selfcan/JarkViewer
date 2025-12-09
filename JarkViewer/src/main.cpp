@@ -110,7 +110,7 @@ struct CurImageParameter {
             if (!std::ranges::binary_search(ZOOM_LIST, zoomFitWindow) || 
                 zoomFitWindow < ZOOM_LIST.front() || 
                 zoomFitWindow > ZOOM_LIST.back())
-                zoomList.push_back(zoomFitWindow);
+                zoomList.emplace_back(zoomFitWindow);
             std::sort(zoomList.begin(), zoomList.end());
             auto it = std::find(zoomList.begin(), zoomList.end(), zoomTarget);
             zoomIndex = (it != zoomList.end()) ? (int)std::distance(zoomList.begin(), it) : (int)(ZOOM_LIST.size() / 2);
@@ -147,7 +147,7 @@ struct CurImageParameter {
         if (!std::ranges::binary_search(ZOOM_LIST, zoomFitWindow) ||
             zoomFitWindow < ZOOM_LIST.front() ||
             zoomFitWindow > ZOOM_LIST.back())
-            zoomList.push_back(zoomFitWindow);
+            zoomList.emplace_back(zoomFitWindow);
         else {
             if (zoomIndex >= zoomList.size())
                 zoomIndex = (int)zoomList.size() - 1;
@@ -287,7 +287,7 @@ public:
                 std::transform(ext.begin(), ext.end(), ext.begin(), ::towlower);
 
                 if (ImageDatabase::supportExt.contains(ext) || ImageDatabase::supportRaw.contains(ext)) {
-                    fileNameList.push_back(entry.path().filename().wstring());
+                    fileNameList.emplace_back(entry.path().filename().wstring());
                 }
             }
 
@@ -297,7 +297,7 @@ public:
 
             for (auto& fileName : fileNameList) {
                 auto fullpath = (workDir / fileName).wstring();
-                imgFileList.push_back(fullpath);
+                imgFileList.emplace_back(std::move(fullpath));
                 if (curFileIdx == -1 && openFileName == fileName) {
                     curFileIdx = (int)imgFileList.size() - 1;
                 }
@@ -990,6 +990,7 @@ public:
         return *((uint32_t*)&srcPx) | (255 << 24);
     }
 
+    // 要求 srcImg 必须是内存紧凑布局，每行像素数据没有填充字节，且每行连接紧凑
     inline static uint32_t getSrcPx4(const cv::Mat& srcImg, int srcX, int srcY, int mainX, int mainY) {
         const intUnion* srcPtr = (intUnion*)srcImg.ptr();
         const int srcW = srcImg.cols;

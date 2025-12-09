@@ -87,7 +87,7 @@ public:
                 // 核心修复在 ConvertSampleToMat 内部
                 cv::Mat frame = ConvertSampleToMat(pSample.Get(), width, height, outputFormat, rotation);
                 if (!frame.empty()) {
-                    frames.push_back(frame);
+                    frames.emplace_back(std::move(frame));
                 }
             }
         }

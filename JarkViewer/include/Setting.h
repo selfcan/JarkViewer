@@ -90,7 +90,7 @@ private:
             allSupportExtW.insert(ImageDatabase::supportExt.begin(), ImageDatabase::supportExt.end());
             allSupportExtW.insert(ImageDatabase::supportRaw.begin(), ImageDatabase::supportRaw.end());
             for (const auto& ext : allSupportExtW)
-                allSupportExt.push_back(jarkUtils::wstringToUtf8(ext));
+                allSupportExt.emplace_back(jarkUtils::wstringToUtf8(ext));
         }
 
         auto checkedExtVec = jarkUtils::splitString(GlobalVar::settingParameter.extCheckedListStr, ",");
@@ -377,21 +377,16 @@ public:
             }
             else if (isInside(x, y, btnRectList[3])) { // 立即关联
                 std::vector<std::wstring> checkedExtW, unCheckedExtW;
-                checkedExtW.reserve(checkedExt.size());
-                for (const auto& ext : checkedExt) {
-                    checkedExtW.push_back(jarkUtils::utf8ToWstring(ext));
-                }
 
-                std::vector<std::string> uncheckedExt;
-                uncheckedExt.reserve(allSupportExt.size() - checkedExt.size());
+                checkedExtW.reserve(checkedExt.size());
+                unCheckedExtW.reserve(allSupportExt.size() - checkedExt.size());
+
+                for (const auto& ext : checkedExt) {
+                    checkedExtW.emplace_back(jarkUtils::utf8ToWstring(ext));
+                }
                 for (const auto& ext : allSupportExt) {
                     if (!checkedExt.contains(ext))
-                        uncheckedExt.push_back(ext);
-                }
-
-                unCheckedExtW.reserve(uncheckedExt.size());
-                for (const auto& ext : uncheckedExt) {
-                    unCheckedExtW.push_back(jarkUtils::utf8ToWstring(ext));
+                        unCheckedExtW.emplace_back(jarkUtils::utf8ToWstring(ext));
                 }
 
                 if (SetupFileAssociations(checkedExtW, unCheckedExtW)) {

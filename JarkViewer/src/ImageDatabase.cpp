@@ -160,9 +160,20 @@ ImageAsset ImageDatabase::loadJXL(wstring_view path, const vector<uint8_t>& buf)
             }
         }
         else if (status == JXL_DEC_FULL_IMAGE) {
-            cv::cvtColor(image, image, cv::COLOR_BGRA2RGBA);
-            imageAsset.frames.push_back(image.clone());
-            imageAsset.frameDurations.push_back(duration_ms);
+            // cv::cvtColor(image, image, cv::COLOR_BGRA2RGBA); // 会额外分配内存，影响性能
+
+            const int height = image.rows;
+            const int width = image.cols;
+            for (int y = 0; y < height; ++y) {
+                cv::Vec4b* rowPtr = image.ptr<cv::Vec4b>(y);
+                for (int x = 0; x < width; ++x) {
+                    cv::Vec4b& pixel = rowPtr[x];
+                    std::swap(pixel[0], pixel[2]);  // B<->R
+                }
+            }
+
+            imageAsset.frames.emplace_back(image);
+            imageAsset.frameDurations.emplace_back(duration_ms);
         }
         else if (status == JXL_DEC_SUCCESS) {
             // All decoding successfully finished.
@@ -314,8 +325,8 @@ ImageAsset ImageDatabase::loadWP2(wstring_view path, const std::vector<uint8_t>&
         }
 
         if (!img.empty()) {
-            imageAsset.frames.push_back(img.clone());
-            imageAsset.frameDurations.push_back(duration_ms);
+            imageAsset.frames.emplace_back(img.clone());
+            imageAsset.frameDurations.emplace_back(duration_ms);
         }
     }
 
@@ -369,8 +380,8 @@ ImageAsset ImageDatabase::loadBPG(wstring_view path, const std::vector<uchar>& b
 
                 int num, den;
                 bpg_decoder_get_frame_duration(decoderContext, &num, &den);
-                imageAsset.frames.push_back(frame.clone());
-                imageAsset.frameDurations.push_back(den == 0 ? 100 : (num * 1000 / den));
+                imageAsset.frames.emplace_back(frame.clone());
+                imageAsset.frameDurations.emplace_back(den == 0 ? 100 : (num * 1000 / den));
             }
             else {
                 break;
@@ -551,17 +562,17 @@ ImageAsset ImageDatabase::loadAvif(wstring_view path, const std::vector<uint8_t>
                 rgb.pixels, rgb.rowBytes).clone();
         }
 
-        imageAsset.frames.push_back(frame);
+        imageAsset.frames.emplace_back(std::move(frame));
 
         // 计算帧时长
         if (decoder->imageCount > 1 && decoder->timescale > 0) {
             double durationInSeconds = (double)decoder->imageTiming.duration /
                 (double)decoder->timescale;
             int durationMs = static_cast<int>(durationInSeconds * 1000.0 + 0.5);
-            imageAsset.frameDurations.push_back(std::max(16, durationMs));  // 至少16ms
+            imageAsset.frameDurations.emplace_back(std::max(16, durationMs));  // 至少16ms
         }
         else {
-            imageAsset.frameDurations.push_back(33);  // 静态图像
+            imageAsset.frameDurations.emplace_back(33);  // 静态图像
         }
 
         // 释放当前帧的RGB缓冲
@@ -826,7 +837,7 @@ std::tuple<cv::Mat, string> ImageDatabase::loadICO(wstring_view path, const vect
 
         // PNG BMP
         if (memcmp(rawData.ptr(), "\x89PNG", 4) == 0 || memcmp(rawData.ptr(), "BM", 2) == 0) {
-            imgs.push_back(cv::imdecode(rawData, cv::IMREAD_UNCHANGED));
+            imgs.emplace_back(cv::imdecode(rawData, cv::IMREAD_UNCHANGED));
             continue;
         }
 
@@ -834,7 +845,7 @@ std::tuple<cv::Mat, string> ImageDatabase::loadICO(wstring_view path, const vect
         if (dibHeader->headerSize != 0x28)
             continue;
 
-        imgs.push_back(readDibFromMemory((uint8_t*)(buf.data() + entry.dataOffset), entry.dataSize));
+        imgs.emplace_back(readDibFromMemory((uint8_t*)(buf.data() + entry.dataOffset), entry.dataSize));
     }
 
     int totalWidth = 0;
