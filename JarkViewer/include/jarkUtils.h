@@ -107,7 +107,7 @@ struct SettingParameter {
 
     int printerBrightness = 100;           // 亮度调整 (0 ~ 200)
     int printerContrast = 100;             // 对比度调整 (0 ~ 200)
-    int printercolorMode = 1;              // 颜色模式
+    int printercolorMode = 1;              // 颜色打印模式 0=彩色, 1=灰度, 2=黑白文档, 3=黑白抖动
     bool printerInvertColors = false;      // 是否反相
     bool printerBalancedBrightness = false;// 是否均衡亮度 文档优化
 
@@ -138,11 +138,76 @@ struct SettingParameter {
     }
 
     SettingParameter(const SettingParameter& other) {
-        memcpy(this, &other, sizeof(SettingParameter));
+        memcpy(extCheckedListStr, defaultExtList.data(), defaultExtList.length() + 1);
+        UI_LANG = (PRIMARYLANGID(GetUserDefaultUILanguage()) == LANG_CHINESE) ? 0 : 1;
 
-        // 检查参数
-        if (UI_LANG < 0 || UI_LANG > 1) // 目前仅中英，索引范围0~1
-            UI_LANG = 0;
+        memcpy(this, &other, sizeof(SettingParameter));
+        ValidateParameters();
+    }
+
+    SettingParameter& operator=(const SettingParameter& other) {
+        if (this == &other) {
+            memcpy(this, &other, sizeof(SettingParameter));
+            ValidateParameters();
+        }
+        return *this;
+    }
+
+    // 检查参数
+    void ValidateParameters() {
+        // 窗口位置大小检查
+        if (rect.left < 0) rect.left = 0;
+        if (rect.top < 0) rect.top = 0;
+        if (rect.right <= rect.left) {
+            rect.right = rect.left + 800; // 默认宽度
+        }
+        if (rect.bottom <= rect.top) {
+            rect.bottom = rect.top + 600; // 默认高度
+        }
+
+        // 窗口模式检查 - 仅限 SW_MAXIMIZE SW_NORMAL
+        if (showCmd != SW_NORMAL && showCmd != SW_MAXIMIZE) {
+            showCmd = SW_MAXIMIZE;
+        }
+
+        // 亮度调整范围检查 (0 ~ 200)
+        if (printerBrightness < 0) printerBrightness = 0;
+        else if (printerBrightness > 200) printerBrightness = 200;
+
+        // 对比度调整范围检查 (0 ~ 200)
+        if (printerContrast < 0) printerContrast = 0;
+        else if (printerContrast > 200) printerContrast = 200;
+
+        // 颜色模式检查 - 0=彩色, 1=灰度, 2=黑白文档, 3=黑白抖动
+        if (printercolorMode < 0) printercolorMode = 1;
+        else if (printercolorMode > 3) printercolorMode = 1;
+
+        // 动画模式检查 (0~2)
+        if (switchImageAnimationMode < 0) switchImageAnimationMode = 0;
+        else if (switchImageAnimationMode > 2) switchImageAnimationMode = 0;
+
+        // 幻灯片模式检查 (0~2)
+        if (pptOrder < 0) pptOrder = 0;
+        else if (pptOrder > 2) pptOrder = 0;
+
+        // 幻灯片切换间隔检查 (1~300秒)
+        if (pptTimeout < 1) pptTimeout = 2;
+        else if (pptTimeout > 300) pptTimeout = 2;
+
+        // 界面主题检查 (0~2)
+        if (UI_Mode < 0) UI_Mode = 0;
+        else if (UI_Mode > 2) UI_Mode = 0; // 超出范围则设为跟随系统
+
+        // 语言检查，目前仅中英，索引范围0~1
+        if (UI_LANG < 0) UI_LANG = 0;
+        else if (UI_LANG > 1) UI_LANG = 0;
+
+        // 右键点击行为检查 (0~1)
+        if (rightClickAction < 0) rightClickAction = 0;
+        else if (rightClickAction > 1) rightClickAction = 0;
+
+        // 确保扩展名列表字符串以空字符结尾
+        extCheckedListStr[sizeof(extCheckedListStr) - 1] = 0;
     }
 };
 
