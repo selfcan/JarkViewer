@@ -35,24 +35,36 @@
 
 ![printerPreview](printerPreview.png)
 
-## 🗃️ 其他
+## 🗃️ 特性
 
 1. 🍀 全静态链接编译，原生绿色单文件
 1. ✅ 自动记忆上次窗口位置/尺寸
 1. ♟️ 图片透明区域使用国际象棋棋盘背景
 1. 📖 支持读取开源AI生成图像的提示词信息【StableDiffusion WebUI、ComfyUI输出的图像一般都会内嵌提示词参数或工作流JSON，若图像经过各大网络平台传播重新编码，该信息可能会被移除】
 
-🔧 若启动时提示缺失 `MSVCP140.dll` 等，请下载并安装 VC++运行库: [Microsoft Visual C++ 2015-2022 Redistributable (x64)](https://aka.ms/vs/17/release/vc_redist.x64.exe)
-
----
-
-## 📂 支持的图像格式
+## 📂 格式支持
 
 - **静态**：`apng avif avifs bmp bpg dib exr gif hdr heic heif ico icon jfif jp2 jpe jpeg jpg jxl jxr livp pbm pfm pgm pic png pnm ppm psd pxm qoi ras sr svg tga tif tiff webp wp2`
 - **动态**：`gif webp png apng jxl bpg avif`
 - **实况**：`livp(IOS LivePhoto) jpg/heic/heif(Android MicroVideo/MotionPhoto)` *暂不支持播放音频*
 - **RAW**：`3fr ari arw bay cap cr2 cr3 crw dcr dcs dng drf eip erf fff gpr iiq k25 kdc mdc mef mos mrw nef nrw orf pef ptx r3d raf raw rw2 rwl rwz sr2 srf srw x3f`
 
+## 👋 快速上手
+
+1. 在 [Releases](https://github.com/jark006/JarkViewer/releases) 下载最新版。
+
+1. 使用 `winget` 安装
+```sh
+winget install jark006.jarkviewer
+```
+
+2. 使用 `scoop` 安装
+```sh
+scoop bucket add extras
+scoop install extras/jarkviewer
+```
+
+> 注意：若启动时提示缺失 `MSVCP140.dll` 等，请下载并安装 VC++运行库: [Microsoft Visual C++ 2015-2022 Redistributable (x64)](https://aka.ms/vs/17/release/vc_redist.x64.exe)
 ---
 
 ## 🛠️ 对于开发者

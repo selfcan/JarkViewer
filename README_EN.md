@@ -35,23 +35,36 @@ You can also select color modes: `Color`, `Gray`, `Document`, `Dithering`.
 
 ![printerPreview](printerPreview.png)
 
-## 🗃️ Additional Features
+## 🗃️ Features
 
 1.  🍀 Fully static linking compilation, native portable single file
 1.  ✅ Automatically remembers last window position/size
 1.  ♟️ Chessboard background for image transparent areas
 1.  📖 Supports reading prompt parameter information from open-source AI-generated images. Images output by StableDiffusion WebUI and ComfyUI typically contain embedded prompt parameters or workflow JSON. However, if the images are re-encoded through circulation on various online platforms, this information may be removed.
 
-🔧 If prompted about missing `MSVCP140.dll` etc. on startup, please download and install the VC++ runtime: [Microsoft Visual C++ 2015-2022 Redistributable (x64)](https://aka.ms/vs/17/release/vc_redist.x64.exe)
-
----
-
-## 📂 Supported Image Formats
+## 📂 Format Support
 
 -   **Static**: `apng avif avifs bmp bpg dib exr gif hdr heic heif ico icon jfif jp2 jpe jpeg jpg jxl jxr livp pbm pfm pgm pic png pnm ppm psd pxm qoi ras sr svg tga tif tiff webp wp2`
 -   **Animated**: `gif webp png apng jxl bpg avif`
--   **Live**: `livp (IOS LivePhoto) jpg/heic/heif (Android MicroVideo/MotionPhoto)` *Audio playback not supported yet*
+-   **Live**: `livp (IOS LivePhoto) jpg/heic/heif (Android MicroVideo/MotionPhoto)` *Audio not supported yet*
 -   **RAW**: `3fr ari arw bay cap cr2 cr3 crw dcr dcs dng drf eip erf fff gpr iiq k25 kdc mdc mef mos mrw nef nrw orf pef ptx r3d raf raw rw2 rwl rwz sr2 srf srw x3f`
+
+## 👋 Quick Start
+
+1. Download the latest version at [Releases](https://github.com/jark006/JarkViewer/releases).
+
+2. Install by `winget`
+```sh
+winget install jark006.jarkviewer
+```
+
+3. Install by `scoop`
+```sh
+scoop bucket add extras
+scoop install extras/jarkviewer
+```
+
+> 🔧 Note: If encounter a missing `MSVCP140.dll` error during startup, please download and install the VC++ runtime: [Microsoft Visual C++ 2015-2022 Redistributable (x64)](https://aka.ms/vs/17/release/vc_redist.x64.exe)
 
 ---
 
