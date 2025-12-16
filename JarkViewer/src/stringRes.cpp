@@ -60,7 +60,7 @@ const char* const UIStringTable[STRING_MAX_NUM][2] = {
     {"西经 W", "West Longitude"},  // 50
     {"子图数量", "Number of subImage"},
     {"\n\nAI生图提示词 ComfyUI工作流.json\n", "\n\nAI-generated image prompt ComfyUI_workflow.json\n"},
-    {"XX", "XX"},
+    {"\n方向: ", "\nExif.Image.Orientation: "},
     {"XX", "XX"},
     {"XX", "XX"},
     {"XX", "XX"},

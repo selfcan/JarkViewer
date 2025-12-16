@@ -1841,9 +1841,9 @@ ImageAsset ImageDatabase::loadLivp(wstring_view path, const vector<uint8_t>& fil
 
     auto exifTmp = ExifParse::getExif(path, imageFileData.data(), imageFileData.size());
     if (imageExt == "jpg" || imageExt == "jpeg") { //heic 已经在解码过程应用了裁剪/旋转/镜像等操作
-        const size_t idx = exifTmp.find("\n方向: ");
+        const size_t idx = exifTmp.find(getUIString(53));
         if (idx != string::npos) {
-            handleExifOrientation(exifTmp[idx + 9] - '0', img);
+            handleExifOrientation(exifTmp[idx + strlen(getUIString(53))] - '0', img);
         }
     }
     auto exifInfo = ExifParse::getSimpleInfo(path, img.cols, img.rows, fileBuf.data(), fileBuf.size()) + exifTmp;
@@ -1921,9 +1921,9 @@ ImageAsset ImageDatabase::loadMotionPhoto(wstring_view path, const vector<uint8_
         ExifParse::getExif(path, fileBuf.data(), fileBuf.size());
 
     if (isJPG) {
-        const size_t idx = exifInfo.find("\n方向: ");
+        const size_t idx = exifInfo.find(getUIString(53));
         if (idx != string::npos) {
-            handleExifOrientation(exifInfo[idx + 9] - '0', img);
+            handleExifOrientation(exifInfo[idx + strlen(getUIString(53))] - '0', img);
         }
     }
 
@@ -2084,9 +2084,9 @@ ImageAsset ImageDatabase::myLoader(const wstring& path) {
                 fileBuf.data(), fileBuf.size())
                 + ExifParse::getExif(path, fileBuf.data(), fileBuf.size());
 
-            const size_t idx = imageAsset.exifInfo.find("\n方向: ");
+            const size_t idx = imageAsset.exifInfo.find(getUIString(53));
             if (idx != string::npos) {
-                handleExifOrientation(imageAsset.exifInfo[idx + 9] - '0', imageAsset.primaryFrame);
+                handleExifOrientation(imageAsset.exifInfo[idx + strlen(getUIString(53))] - '0', imageAsset.primaryFrame);
             }
         }
         else {
@@ -2166,9 +2166,9 @@ ImageAsset ImageDatabase::myLoader(const wstring& path) {
     if (exifInfo.empty()) {
         auto exifTmp = ExifParse::getExif(path, fileBuf.data(), fileBuf.size());
         if (!supportRaw.contains(ext)) { // RAW 格式已经在解码过程应用了裁剪/旋转/镜像等操作
-            const size_t idx = exifTmp.find("\n方向: ");
+            const size_t idx = exifTmp.find(getUIString(53));
             if (idx != string::npos) {
-                handleExifOrientation(exifTmp[idx + 9] - '0', img);
+                handleExifOrientation(exifTmp[idx + strlen(getUIString(53))] - '0', img);
             }
         }
         exifInfo = ExifParse::getSimpleInfo(path, img.cols, img.rows, fileBuf.data(), fileBuf.size()) + exifTmp;
