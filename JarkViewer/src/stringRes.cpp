@@ -28,7 +28,7 @@ const char* const UIStringTable[STRING_MAX_NUM][2] = {
     {"幻灯片间隔(秒)", "Slideshow Interval (seconds)"},
     {"编译时间 UTC+8", "[Build time UTC+8]"},
     {"切图动画", "SwitchAnim"},  // 20
-    {"无动画", "None"},
+    {"无动画", "Off"},
     {"上下滑动", "Vertical"},
     {"左右滑动", "Horizontal"},
     {"主题", "Theme"},
@@ -101,7 +101,7 @@ const wchar_t* const UIStringTableW[STRING_MAX_NUM][2] = {
     {L"复制图像数据 (&C)", L"&Copy image data"},
     {L"显示EXIF信息 (&I)", L"Show EXIF &info"},
     {L"打开所在位置 (&L)", L"Open file &location"},
-    {L"删除到回收站 (&D)", L"Move to recycle bin(&D)"},  // 30
+    {L"删除到回收站 (&D)", L"Move to recycle bin"},  // 30
     {L"打印 (&P)", L"&Print"},
     {L"设置 (&S)", L"&Settings"},
     {L"关于 (&A)", L"&About"},

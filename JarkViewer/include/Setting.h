@@ -5,6 +5,9 @@
 #include "D2D1App.h"
 #include "FileAssociationManager.h"
 
+// TODO 检查更新
+// 检查是否存在最新版 https://api.github.com/repos/jark006/JarkViewer/releases/latest
+
 extern std::wstring_view appVersion;
 extern std::wstring_view jarkLink;
 extern std::wstring_view RepositoryLink;
@@ -24,7 +27,7 @@ struct generalTabCheckBox {
 struct generalTabRadio {
     cv::Rect rect{};
     std::vector<int> stringIDs;
-    int* valuePtr = nullptr;
+    uint32_t* valuePtr = nullptr;
 };
 
 class Setting {

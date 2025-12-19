@@ -11,10 +11,10 @@ struct PrintParams {
     //double leftMargin = 5.0;      // 左边距百分比
     //double rightMargin = 5.0;     // 右边距百分比
     //int layoutMode = 0;           // 0=适应, 1=填充, 2=原始比例
-    int brightness = 100;         // 亮度调整 (0 ~ 200)
-    int contrast = 100;           // 对比度调整 (0 ~ 200)
-    int colorMode = 1;            // 颜色模式 0:彩色  1:黑白  2:黑白文档 3:黑白抖动(二值像素)
-    bool invertColors = false;    // 是否反相
+    uint32_t brightness = 100;      // 亮度调整 (0 ~ 200)
+    uint32_t contrast = 100;        // 对比度调整 (0 ~ 200)
+    uint32_t colorMode = 1;         // 颜色模式 0:彩色  1:黑白  2:黑白文档 3:黑白抖动(二值像素)
+    bool invertColors = false;      // 是否反相
 
     bool isParamsChange = false;
     bool confirmed = false;       // 用户点击确认
@@ -78,13 +78,9 @@ private:
         params.invertColors = GlobalVar::settingParameter.printerInvertColors;
 
         // 异常情况则恢复默认值
-        if (params.brightness < 0 || params.brightness > 200 || params.contrast < 0 || params.brightness > 200 ||
-            params.colorMode < 0 || params.colorMode > 3) {
-            params.brightness = 100;
-            params.contrast = 100;
-            params.colorMode = 1;
-            params.invertColors = false;
-        }
+        if (params.brightness > 200) params.brightness = 100;
+        if (params.contrast > 200) params.contrast = 100;
+        if (params.colorMode > 3) params.colorMode = 1;
     }
 
 public:
@@ -247,18 +243,17 @@ public:
         return hBitmap;
     }
 
-    static void adjustBrightnessContrast(cv::Mat& src, int brightnessInt, int contrastInt) {
+    static void adjustBrightnessContrast(cv::Mat& src, uint32_t brightnessInt, uint32_t contrastInt) {
         if (src.empty() || src.type() != CV_8UC3)
             return;
 
+        // 取值不能极端
         if (brightnessInt < 1)
             brightnessInt = 1;
         else if (brightnessInt > 199)
             brightnessInt = 199;
 
-        if (contrastInt < 0)
-            contrastInt = 0;
-        else if (contrastInt > 200)
+        if (contrastInt > 200)
             contrastInt = 200;
 
         // brightness: 0 ~ 200 映射到 0 ~ 2.0
@@ -288,7 +283,7 @@ public:
     }
 
     // 图像处理 调整对比度 彩色 黑白
-    static void ApplyImageAdjustments(cv::Mat& image, int brightness, int contrast, int colorMode, bool invertColors) {
+    static void ApplyImageAdjustments(cv::Mat& image, uint32_t brightness, uint32_t contrast, uint32_t colorMode, bool invertColors) {
         if (image.empty()) return;
 
         if (colorMode == 1 || colorMode == 3) { // 黑白、黑白抖动也需要先灰度
@@ -416,13 +411,13 @@ public:
             if ((100 < x) && (x < 800) && (50 < y) && (y < 100)) {
                 params->brightness += (wheelValue > 0) ? 1 : -1;
                 params->isParamsChange = true;
-                if (params->brightness < 0)params->brightness = 0;
+                if (params->brightness > INT_MAX)params->brightness = 0;
                 if (params->brightness > 200)params->brightness = 200;
             }
             else if ((100 < x) && (x < 800) && (100 < y) && (y < 150)) {
                 params->contrast += (wheelValue > 0) ? 1 : -1;
                 params->isParamsChange = true;
-                if (params->contrast < 0)params->contrast = 0;
+                if (params->contrast > INT_MAX)params->contrast = 0;
                 if (params->contrast > 200)params->contrast = 200;
             }
         }break;

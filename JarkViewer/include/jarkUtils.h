@@ -105,9 +105,9 @@ struct SettingParameter {
     RECT rect{};                           // 窗口大小位置
     uint32_t showCmd = SW_MAXIMIZE;        // 窗口模式
 
-    int printerBrightness = 100;           // 亮度调整 (0 ~ 200)
-    int printerContrast = 100;             // 对比度调整 (0 ~ 200)
-    int printercolorMode = 1;              // 颜色打印模式 0=彩色, 1=灰度, 2=黑白文档, 3=黑白抖动
+    uint32_t printerBrightness = 100;      // 亮度调整 (0 ~ 200)
+    uint32_t printerContrast = 100;        // 对比度调整 (0 ~ 200)
+    uint32_t printercolorMode = 1;         // 颜色打印模式 0=彩色, 1=灰度, 2=黑白文档, 3=黑白抖动
     bool printerInvertColors = false;      // 是否反相
     bool printerBalancedBrightness = false;// 是否均衡亮度 文档优化
 
@@ -118,15 +118,15 @@ struct SettingParameter {
     bool isAllowZoomAnimation = true;
     bool isOptimizeSlide = false;           // 优化图像平移性能 （实为渲染工作量偷懒减半）
     bool isNoteBeforeDelete = true;         // 删除前提示
-    int switchImageAnimationMode = 0;       // 0: 无动画  1:上下滑动  2:左右滑动
+    uint32_t switchImageAnimationMode = 0;  // 0: 无动画  1:上下滑动  2:左右滑动
 
-    int pptOrder = 0;                       // 幻灯片模式  0: 顺序  1:逆序  2:随机
-    int pptTimeout = 5;                     // 幻灯片模式  切换间隔 1 ~ 300 秒
+    uint32_t pptOrder = 0;                  // 幻灯片模式  0: 顺序  1:逆序  2:随机
+    uint32_t pptTimeout = 5;                // 幻灯片模式  切换间隔 1 ~ 300 秒
 
-    int UI_Mode = 0;                        // 界面主题 0:跟随系统  1:浅色  2:深色
-    int UI_LANG = 0;                        // 界面语言 0:中文  1:English
+    uint32_t UI_Mode = 0;                   // 界面主题 0:跟随系统  1:浅色  2:深色
+    uint32_t UI_LANG = 0;                   // 界面语言 0:中文  1:English
 
-    int rightClickAction = 0;              // 右键点击行为  0:打开菜单  1:退出程序
+    uint32_t rightClickAction = 0;          // 右键点击行为  0:打开菜单  1:退出程序
 
     uint32_t reserve[800];
 
@@ -171,40 +171,32 @@ struct SettingParameter {
         }
 
         // 亮度调整范围检查 (0 ~ 200)
-        if (printerBrightness < 0) printerBrightness = 0;
-        else if (printerBrightness > 200) printerBrightness = 200;
+        if (printerBrightness > 200) printerBrightness = 100;
 
         // 对比度调整范围检查 (0 ~ 200)
-        if (printerContrast < 0) printerContrast = 0;
-        else if (printerContrast > 200) printerContrast = 200;
+        if (printerContrast > 200) printerContrast = 100;
 
         // 颜色模式检查 - 0=彩色, 1=灰度, 2=黑白文档, 3=黑白抖动
-        if (printercolorMode < 0) printercolorMode = 1;
-        else if (printercolorMode > 3) printercolorMode = 1;
+        if (printercolorMode > 3) printercolorMode = 1;
 
         // 动画模式检查 (0~2)
-        if (switchImageAnimationMode < 0) switchImageAnimationMode = 0;
-        else if (switchImageAnimationMode > 2) switchImageAnimationMode = 0;
+        if (switchImageAnimationMode > 2) switchImageAnimationMode = 0;
 
         // 幻灯片模式检查 (0~2)
-        if (pptOrder < 0) pptOrder = 0;
-        else if (pptOrder > 2) pptOrder = 0;
+        if (pptOrder > 2) pptOrder = 0;
 
         // 幻灯片切换间隔检查 (1~300秒)
         if (pptTimeout < 1) pptTimeout = 2;
-        else if (pptTimeout > 300) pptTimeout = 2;
+        else if (pptTimeout > 300) pptTimeout = 5;
 
         // 界面主题检查 (0~2)
-        if (UI_Mode < 0) UI_Mode = 0;
-        else if (UI_Mode > 2) UI_Mode = 0; // 超出范围则设为跟随系统
+        if (UI_Mode > 2) UI_Mode = 0; // 超出范围则设为跟随系统
 
         // 语言检查，目前仅中英，索引范围0~1
-        if (UI_LANG < 0) UI_LANG = 0;
-        else if (UI_LANG > 1) UI_LANG = 0;
+        if (UI_LANG > 1) UI_LANG = 0;
 
         // 右键点击行为检查 (0~1)
-        if (rightClickAction < 0) rightClickAction = 0;
-        else if (rightClickAction > 1) rightClickAction = 0;
+        if (rightClickAction > 1) rightClickAction = 0;
 
         // 确保扩展名列表字符串以空字符结尾
         extCheckedListStr[sizeof(extCheckedListStr) - 1] = 0;
