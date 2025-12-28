@@ -113,6 +113,7 @@ public:
         L"heic", L"heif", L"avif", L"avifs", L"gif", L"jxl",
         L"ico", L"icon", L"psd", L"tga", L"svg", L"jfif",
         L"jxr", L"wp2", L"pfm", L"bpg", L"livp", L"qoi",
+        L"pcx", 
     };
 
     static inline const unordered_set<wstring_view> supportRaw{
@@ -337,6 +338,7 @@ public:
     cv::Mat loadSVG(wstring_view path, const vector<uint8_t>& buf);
     cv::Mat loadPFM(wstring_view path, const vector<uint8_t>& buf);
     cv::Mat loadQOI(wstring_view path, const vector<uint8_t>& buf);
+    cv::Mat loadPCX(wstring_view path, const vector<uint8_t>& buf);
     cv::Mat loadHeic(wstring_view path, const vector<uint8_t>& buf);
     cv::Mat loadRaw(wstring_view path, const vector<uint8_t>& buf);
 

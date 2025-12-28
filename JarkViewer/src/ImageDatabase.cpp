@@ -1221,14 +1221,14 @@ cv::Mat ImageDatabase::loadSVG(wstring_view path, const vector<uint8_t>& buf) {
 cv::Mat ImageDatabase::loadImageWinCOM(wstring_view path, const vector<uint8_t>& buf) {
     HRESULT hr = CoInitialize(NULL);
     if (FAILED(hr)) {
-        std::cerr << "Failed to initialize COM library." << std::endl;
+        JARK_LOG("Failed to initialize COM library.");
         return {};
     }
 
     IWICImagingFactory* pFactory = NULL;
     hr = CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_IWICImagingFactory, (LPVOID*)&pFactory);
     if (FAILED(hr)) {
-        std::cerr << "Failed to create WIC Imaging Factory." << std::endl;
+        JARK_LOG("Failed to create WIC Imaging Factory.");
         CoUninitialize();
         return {};
     }
@@ -1236,7 +1236,7 @@ cv::Mat ImageDatabase::loadImageWinCOM(wstring_view path, const vector<uint8_t>&
     IStream* pStream = NULL;
     hr = CreateStreamOnHGlobal(NULL, TRUE, &pStream);
     if (FAILED(hr)) {
-        std::cerr << "Failed to create stream." << std::endl;
+        JARK_LOG("Failed to create stream.");
         pFactory->Release();
         CoUninitialize();
         return {};
@@ -1245,7 +1245,7 @@ cv::Mat ImageDatabase::loadImageWinCOM(wstring_view path, const vector<uint8_t>&
     ULONG bytesWritten;
     hr = pStream->Write(buf.data(), (ULONG)buf.size(), &bytesWritten);
     if (FAILED(hr) || bytesWritten != buf.size()) {
-        std::cerr << "Failed to write to stream." << std::endl;
+        JARK_LOG("Failed to write to stream.");
         pStream->Release();
         pFactory->Release();
         CoUninitialize();
@@ -1255,7 +1255,7 @@ cv::Mat ImageDatabase::loadImageWinCOM(wstring_view path, const vector<uint8_t>&
     LARGE_INTEGER li = { 0 };
     hr = pStream->Seek(li, STREAM_SEEK_SET, NULL);
     if (FAILED(hr)) {
-        std::cerr << "Failed to seek stream." << std::endl;
+        JARK_LOG("Failed to seek stream.");
         pStream->Release();
         pFactory->Release();
         CoUninitialize();
@@ -1265,7 +1265,7 @@ cv::Mat ImageDatabase::loadImageWinCOM(wstring_view path, const vector<uint8_t>&
     IWICBitmapDecoder* pDecoder = NULL;
     hr = pFactory->CreateDecoderFromStream(pStream, NULL, WICDecodeMetadataCacheOnDemand, &pDecoder);
     if (FAILED(hr)) {
-        std::cerr << "Failed to create decoder from stream." << std::endl;
+        JARK_LOG("Failed to create decoder from stream.");
         pStream->Release();
         pFactory->Release();
         CoUninitialize();
@@ -1275,7 +1275,7 @@ cv::Mat ImageDatabase::loadImageWinCOM(wstring_view path, const vector<uint8_t>&
     IWICBitmapFrameDecode* pFrame = NULL;
     hr = pDecoder->GetFrame(0, &pFrame);
     if (FAILED(hr)) {
-        std::cerr << "Failed to get frame from decoder." << std::endl;
+        JARK_LOG("Failed to get frame from decoder.");
         pDecoder->Release();
         pStream->Release();
         pFactory->Release();
@@ -1286,7 +1286,7 @@ cv::Mat ImageDatabase::loadImageWinCOM(wstring_view path, const vector<uint8_t>&
     UINT width, height;
     hr = pFrame->GetSize(&width, &height);
     if (FAILED(hr)) {
-        std::cerr << "Failed to get image size." << std::endl;
+        JARK_LOG("Failed to get image size.");
         pFrame->Release();
         pDecoder->Release();
         pStream->Release();
@@ -1298,7 +1298,7 @@ cv::Mat ImageDatabase::loadImageWinCOM(wstring_view path, const vector<uint8_t>&
     IWICFormatConverter* pConverter = NULL;
     hr = pFactory->CreateFormatConverter(&pConverter);
     if (FAILED(hr)) {
-        std::cerr << "Failed to create format converter." << std::endl;
+        JARK_LOG("Failed to create format converter.");
         pFrame->Release();
         pDecoder->Release();
         pStream->Release();
@@ -1309,7 +1309,7 @@ cv::Mat ImageDatabase::loadImageWinCOM(wstring_view path, const vector<uint8_t>&
 
     hr = pConverter->Initialize(pFrame, GUID_WICPixelFormat32bppBGRA, WICBitmapDitherTypeNone, NULL, 0.0, WICBitmapPaletteTypeCustom);
     if (FAILED(hr)) {
-        std::cerr << "Failed to initialize format converter." << std::endl;
+        JARK_LOG("Failed to initialize format converter.");
         pConverter->Release();
         pFrame->Release();
         pDecoder->Release();
@@ -1322,7 +1322,7 @@ cv::Mat ImageDatabase::loadImageWinCOM(wstring_view path, const vector<uint8_t>&
     cv::Mat mat(height, width, CV_8UC4);
     hr = pConverter->CopyPixels(NULL, width * 4, width * height * 4, mat.data);
     if (FAILED(hr)) {
-        std::cerr << "Failed to copy pixels." << std::endl;
+        JARK_LOG("Failed to copy pixels.");
         pConverter->Release();
         pFrame->Release();
         pDecoder->Release();
@@ -1552,7 +1552,7 @@ static bool parsePFMHeader(const vector<uint8_t>& buf, int& width, int& height, 
         isColor = false;
     }
     else {
-        std::cerr << "Invalid PFM format!" << endl;
+        JARK_LOG("Invalid PFM format!");
         return false;
     }
 
@@ -1603,7 +1603,7 @@ cv::Mat ImageDatabase::loadPFM(wstring_view path, const vector<uint8_t>& buf) {
 
     // 解析 PFM 头信息
     if (!parsePFMHeader(buf, width, height, scaleFactor, isColor, dataOffset)) {
-        std::cerr << "Failed to parse PFM header!" << endl;
+        JARK_LOG("Failed to parse PFM header!");
         return {};
     }
 
@@ -1652,6 +1652,177 @@ cv::Mat ImageDatabase::loadQOI(wstring_view path, const vector<uint8_t>& buf) {
     return ret;
 }
 
+// PCX文件头结构
+#pragma pack(push, 1)
+struct PCXHeader {
+    uint8_t manufacturer;      // 固定为0x0A
+    uint8_t version;           // 版本号
+    uint8_t encoding;          // 编码方式(1=RLE)
+    uint8_t bitsPerPixel;      // 每像素位数
+    uint16_t xMin, yMin;       // 图像左上角坐标
+    uint16_t xMax, yMax;       // 图像右下角坐标
+    uint16_t hDpi, vDpi;       // 水平和垂直DPI
+    uint8_t colormap[48];      // 16色调色板
+    uint8_t reserved;          // 保留字节
+    uint8_t numPlanes;         // 颜色平面数
+    uint16_t bytesPerLine;     // 每行字节数
+    uint16_t paletteInfo;      // 调色板类型
+    uint16_t hScreenSize;      // 水平屏幕尺寸
+    uint16_t vScreenSize;      // 垂直屏幕尺寸
+    uint8_t filler[54];        // 填充到128字节
+};
+#pragma pack(pop)
+
+// RLE解码函数
+static std::vector<uint8_t> decodeRLE(const uint8_t* data, size_t dataSize, size_t expectedSize) {
+    std::vector<uint8_t> decoded;
+    decoded.reserve(expectedSize);
+
+    size_t pos = 0;
+    while (pos < dataSize && decoded.size() < expectedSize) {
+        uint8_t byte = data[pos++];
+
+        // 如果高2位为11，表示是RLE编码
+        if ((byte & 0xC0) == 0xC0) {
+            uint8_t count = byte & 0x3F;  // 重复次数
+            if (pos >= dataSize) break;
+            uint8_t value = data[pos++];   // 要重复的值
+
+            for (int i = 0; i < count && decoded.size() < expectedSize; i++) {
+                decoded.push_back(value);
+            }
+        }
+        else {
+            decoded.push_back(byte);
+        }
+    }
+
+    return decoded;
+}
+
+cv::Mat ImageDatabase::loadPCX(wstring_view path, const vector<uint8_t>& buf) {
+    if (buf.size() < sizeof(PCXHeader)) {
+        JARK_LOG("文件太小，不是有效的PCX文件");
+        return cv::Mat();
+    }
+
+    PCXHeader header;
+    std::memcpy(&header, buf.data(), sizeof(PCXHeader));
+
+    // 验证
+    if (header.manufacturer != 0x0A) {
+        JARK_LOG("无效的PCX文件标识");
+        return cv::Mat();
+    }
+
+    int width = header.xMax - header.xMin + 1;
+    int height = header.yMax - header.yMin + 1;
+
+    if (width <= 0 || height <= 0) {
+        JARK_LOG("无效的图像尺寸 {} x {}", width, height);
+        return cv::Mat();
+    }
+
+    // 解码图像数据
+    const uint8_t* imageData = buf.data() + sizeof(PCXHeader);
+    size_t imageDataSize = buf.size() - sizeof(PCXHeader);
+
+    // 处理256色调色板(如果存在)
+    std::vector<cv::Vec3b> palette;
+    if (header.bitsPerPixel == 8 && header.numPlanes == 1) {
+        // 256色调色板在文件末尾
+        if (buf.size() >= 769 && buf[buf.size() - 769] == 0x0C) {
+            imageDataSize -= 769;
+            const uint8_t* paletteData = buf.data() + buf.size() - 768;
+
+            for (int i = 0; i < 256; i++) {
+                uint8_t r = paletteData[i * 3];
+                uint8_t g = paletteData[i * 3 + 1];
+                uint8_t b = paletteData[i * 3 + 2];
+                palette.push_back(cv::Vec3b(b, g, r));  // OpenCV使用BGR
+            }
+        }
+    }
+
+    // 计算每行总字节数
+    size_t bytesPerScanline = header.bytesPerLine * header.numPlanes;
+    size_t expectedSize = bytesPerScanline * height;
+
+    // RLE解码
+    std::vector<uint8_t> decoded = decodeRLE(imageData, imageDataSize, expectedSize);
+
+    if (decoded.size() < expectedSize) {
+        JARK_LOG("解码数据不完整");
+        return cv::Mat();
+    }
+
+    cv::Mat result;
+
+    // 根据位深度和平面数处理图像
+    if (header.bitsPerPixel == 8 && header.numPlanes == 1) {
+        // 256色索引图像
+        result = cv::Mat(height, width, CV_8UC3);
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                uint8_t index = decoded[y * header.bytesPerLine + x];
+                if (!palette.empty()) {
+                    result.at<cv::Vec3b>(y, x) = palette[index];
+                }
+                else {
+                    result.at<cv::Vec3b>(y, x) = cv::Vec3b(index, index, index);
+                }
+            }
+        }
+    }
+    else if (header.bitsPerPixel == 8 && header.numPlanes == 3) {
+        // 24位RGB图像(平面格式)
+        result = cv::Mat(height, width, CV_8UC3);
+
+        for (int y = 0; y < height; y++) {
+            size_t rowOffset = y * bytesPerScanline;
+            for (int x = 0; x < width; x++) {
+                uint8_t r = decoded[rowOffset + x];
+                uint8_t g = decoded[rowOffset + header.bytesPerLine + x];
+                uint8_t b = decoded[rowOffset + header.bytesPerLine * 2 + x];
+                result.at<cv::Vec3b>(y, x) = cv::Vec3b(b, g, r);
+            }
+        }
+    }
+    else if (header.bitsPerPixel == 8 && header.numPlanes == 4) {
+        // 32位RGBA图像(平面格式)
+        result = cv::Mat(height, width, CV_8UC4);
+
+        for (int y = 0; y < height; y++) {
+            size_t rowOffset = y * bytesPerScanline;
+            for (int x = 0; x < width; x++) {
+                uint8_t r = decoded[rowOffset + x];
+                uint8_t g = decoded[rowOffset + header.bytesPerLine + x];
+                uint8_t b = decoded[rowOffset + header.bytesPerLine * 2 + x];
+                uint8_t a = decoded[rowOffset + header.bytesPerLine * 3 + x];
+                result.at<cv::Vec4b>(y, x) = cv::Vec4b(b, g, r, a);
+            }
+        }
+    }
+    else if (header.bitsPerPixel == 1 && header.numPlanes == 1) {
+        // 单色图像
+        result = cv::Mat(height, width, CV_8UC1);
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int byteIdx = y * header.bytesPerLine + (x / 8);
+                int bitIdx = 7 - (x % 8);
+                uint8_t pixel = (decoded[byteIdx] >> bitIdx) & 1;
+                result.at<uint8_t>(y, x) = pixel ? 255 : 0;
+            }
+        }
+    }
+    else {
+        JARK_LOG("不支持的PCX格式: {} bpp, {} planes", (int)header.bitsPerPixel, (int)header.numPlanes);
+    }
+
+    return result;
+}
 
 static std::tuple<std::vector<uint8_t>, std::vector<uint8_t>, std::string> unzipLivp(const std::vector<uint8_t>& livpFileBuff) {
     zlib_filefunc_def memory_filefunc;
@@ -1747,7 +1918,7 @@ static std::tuple<std::vector<uint8_t>, std::vector<uint8_t>, std::string> unzip
         if (file_name.empty() || file_name.length() < 4)
             continue;
 
-        for (int i = file_name.length() - 4; i < file_name.length(); i++)
+        for (int i = (int)file_name.length() - 4; i < file_name.length(); i++)
             file_name[i] = std::tolower(file_name[i]);
 
         if (file_name.ends_with("jpg") || file_name.ends_with("jpeg") ||
@@ -2127,6 +2298,13 @@ ImageAsset ImageDatabase::myLoader(const wstring& path) {
     }
     else if (ext == L"qoi") {
         img = loadQOI(path, fileBuf);
+        exifInfo = ExifParse::getSimpleInfo(path, img.cols, img.rows, fileBuf.data(), fileBuf.size());
+        if (img.empty()) {
+            img = getErrorTipsMat();
+        }
+    }
+    else if (ext == L"pcx") {
+        img = loadPCX(path, fileBuf);
         exifInfo = ExifParse::getSimpleInfo(path, img.cols, img.rows, fileBuf.data(), fileBuf.size());
         if (img.empty()) {
             img = getErrorTipsMat();
