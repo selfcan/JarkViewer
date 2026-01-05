@@ -17,11 +17,16 @@
 
 /* TODO
 1. 在鼠标光标位置缩放
+1. 配置文件位置可选：程序所在目录/用户目录
+1. 调整窗口尺寸时，实时刷新
+1. 缩放策略加个线性插值
+1. LunaSVG库支持度较差，考虑更换
+1. 考虑加个按时间日期排序
 1. 部分AVIF图像仍不能正常解码 AVIF_RESULT_BMFF_PARSE_FAILED
 */
 
 std::wstring_view appName = L"JarkViewer";
-std::wstring_view appVersion = L"v1.32Alpha";
+std::wstring_view appVersion = L"v1.32";
 constinit int appVersionCode = 13200; // 主版本*10000 + 次版本*100 + 修订版本
 
 std::wstring_view jarkLink = L"https://github.com/jark006";
