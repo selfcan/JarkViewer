@@ -25,26 +25,48 @@ void D2D1App::SafeRelease(Interface*& pInterfaceToRelease) {
 }
 
 void D2D1App::loadSettings() {
+    wchar_t modulePath[MAX_PATH];
+    GetModuleFileNameW(NULL, modulePath, MAX_PATH);
+    std::wstring moduleDir(modulePath);
+    size_t lastSlash = moduleDir.find_last_of(L'\\');
+    if (lastSlash != std::wstring::npos) {
+        moduleDir = moduleDir.substr(0, lastSlash);
+    }
+    GlobalVar::settingPath = moduleDir + L"\\JarkViewer.db";
+
     PWSTR appDataPath = nullptr;
-    if (FAILED(SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &appDataPath))) {
-        JARK_LOG("SHGetKnownFolderPath FOLDERID_RoamingAppData failed.");
-        return;
+    std::wstring oldSettingPath;
+    if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &appDataPath))) {
+        oldSettingPath = std::wstring(appDataPath) + L"\\JarkViewer.db";
+        CoTaskMemFree(appDataPath);
+        appDataPath = nullptr;
     }
 
-    GlobalVar::settingPath = std::wstring(appDataPath) + L"\\JarkViewer.db";
-    CoTaskMemFree(appDataPath);
-    appDataPath = nullptr;
-
-    auto f = _wfopen(GlobalVar::settingPath.c_str(), L"rb");
-    if (!f)
-        return;
-
     SettingParameter tmp;
-    auto readLen = fread(&tmp, 1, sizeof(SettingParameter), f);
-    fclose(f);
+    bool loaded = false;
 
-    if (readLen == sizeof(SettingParameter) && !memcmp(GlobalVar::settingHeader.data(), tmp.header, GlobalVar::settingHeader.length()))
-        GlobalVar::settingParameter = tmp;
+    auto f = _wfopen(oldSettingPath.c_str(), L"rb");
+    if (f) {
+        auto readLen = fread(&tmp, 1, sizeof(SettingParameter), f);
+        fclose(f);
+
+        if (readLen == sizeof(SettingParameter) && !memcmp(GlobalVar::settingHeader.data(), tmp.header, GlobalVar::settingHeader.length())) {
+            GlobalVar::settingParameter = tmp;
+            loaded = true;
+            MoveFileExW(oldSettingPath.c_str(), GlobalVar::settingPath.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED);
+        }
+    }
+
+    if (!loaded) {
+        f = _wfopen(GlobalVar::settingPath.c_str(), L"rb");
+        if (f) {
+            auto readLen = fread(&tmp, 1, sizeof(SettingParameter), f);
+            fclose(f);
+
+            if (readLen == sizeof(SettingParameter) && !memcmp(GlobalVar::settingHeader.data(), tmp.header, GlobalVar::settingHeader.length()))
+                GlobalVar::settingParameter = tmp;
+        }
+    }
 
     if (GlobalVar::settingParameter.showCmd == SW_NORMAL) {
         int screenWidth = (::GetSystemMetrics(SM_CXFULLSCREEN));
